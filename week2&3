@@ -1,0 +1,136 @@
+class HomeScreen extends StatefulWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class Task {
+  String title;
+  bool isDone;
+  Task(this.title, {this.isDone = false});
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int counter = 0;
+  List<Task> tasks = [];
+  final taskCtrl = TextEditingController();
+
+  void _addTask(String title) {
+    if (title.trim().isEmpty) return;
+    setState(() {
+      tasks.add(Task(title));
+      taskCtrl.clear();
+    });
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      tasks.removeAt(index);
+    });
+  }
+
+  void _toggleTask(int index) {
+    setState(() {
+      tasks[index].isDone = !tasks[index].isDone;
+    });
+  }
+
+  void _showAddTaskDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("New Task"),
+        content: TextField(
+          controller: taskCtrl,
+          decoration: InputDecoration(hintText: "Enter task"),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel")),
+          ElevatedButton(
+              onPressed: () {
+                _addTask(taskCtrl.text);
+                Navigator.pop(context);
+              },
+              child: Text("Add")),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCounter() {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text("Counter Value", style: TextStyle(fontSize: 18)),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(onPressed: () => setState(() => counter--), icon: Icon(Icons.remove)),
+                Text('$counter', style: TextStyle(fontSize: 20)),
+                IconButton(onPressed: () => setState(() => counter++), icon: Icon(Icons.add)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskList() {
+    return tasks.isEmpty
+        ? Center(child: Text("No tasks yet."))
+        : ListView.builder(
+            itemCount: tasks.length,
+            itemBuilder: (_, i) {
+              final task = tasks[i];
+              return ListTile(
+                leading: Checkbox(
+                  value: task.isDone,
+                  onChanged: (_) => _toggleTask(i),
+                ),
+                title: Text(
+                  task.title,
+                  style: TextStyle(
+                    decoration: task.isDone
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteTask(i),
+                ),
+              );
+            },
+          );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Task Manager"),
+        actions: [
+          IconButton(onPressed: _showAddTaskDialog, icon: Icon(Icons.add)),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            _buildCounter(),
+            Divider(),
+            Expanded(child: _buildTaskList()),
+          ],
+        ),
+      ),
+    );
+  }
+}
